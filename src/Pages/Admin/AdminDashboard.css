@@ -1,0 +1,223 @@
+/* Add these to your AdminDashboard.css */
+.calendar-legend {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.logout-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-welcome {
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+}
+
+.logout-btn {
+  background: #c62828;
+  color: white;
+  border: 1px solid #b71c1c;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  width: 100%;
+}
+
+.logout-btn:hover {
+  background: #b71c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 4px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.status-filters {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.status-filter-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.status-filter-btn.active {
+  background: rgba(198, 40, 40, 0.5);
+  border-color: #c62828;
+}
+
+.appointment-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 80px;
+}
+
+.action-btn {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn.approve {
+  background: #4CAF50;
+  color: white;
+}
+
+.action-btn.reject {
+  background: #f44336;
+  color: white;
+}
+
+.action-btn.complete {
+  background: #2196F3;
+  color: white;
+}
+
+.action-btn.cancel {
+  background: #FF9800;
+  color: white;
+}
+
+.action-btn.reset {
+  background: #9E9E9E;
+  color: white;
+}
+
+.action-btn:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+/* Report Generation Styles */
+.report-controls {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.report-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  margin-bottom: 10px;
+}
+
+.report-select option {
+  background: #2a2a2a;
+  color: white;
+}
+
+.report-buttons {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.report-btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.report-btn.summary {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+}
+
+.report-btn.detailed {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+}
+
+.report-btn.download {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+}
+
+.report-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.report-btn:active {
+  transform: translateY(0);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .logout-section {
+    padding-top: 8px;
+    gap: 8px;
+  }
+  
+  .admin-welcome {
+    font-size: 12px;
+  }
+  
+  .logout-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
