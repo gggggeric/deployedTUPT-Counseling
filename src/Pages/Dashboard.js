@@ -85,7 +85,7 @@ const Dashboard = () => {
 
   const loadUserAppointments = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:5000/appointments/${userId}`);
+      const response = await fetch(`https://tupt-counselingbackend.onrender.com/appointments/${userId}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -128,7 +128,7 @@ const Dashboard = () => {
       const user = JSON.parse(localStorage.getItem('currentUser'));
       const userId = user.user_id;
       
-      const response = await fetch('http://localhost:5000/appointments', {
+      const response = await fetch('https://tupt-counselingbackend.onrender.com/appointments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

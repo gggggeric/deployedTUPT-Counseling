@@ -43,7 +43,7 @@ const AdminDashboard = () => {
     try {
       setIsLoading(true);
       setError('');
-      const response = await fetch('http://localhost:5000/all-appointments');
+      const response = await fetch('https://tupt-counselingbackend.onrender.com/all-appointments');
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -371,7 +371,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/appointments/${appointmentId}/status`, {
+      const response = await fetch(`https://tupt-counselingbackend.onrender.com/appointments/${appointmentId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
