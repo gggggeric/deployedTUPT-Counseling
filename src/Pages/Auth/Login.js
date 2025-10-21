@@ -153,7 +153,7 @@ const handleLoginSubmit = async (e) => {
                 Clear
               </button>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <a href="#forgot" style={{ fontSize: '13px', color: 'white' }}>Forgot Password?</a>
+      
                 <button 
                   type="submit" 
                   className="btn-login"
