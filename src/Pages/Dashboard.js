@@ -31,55 +31,51 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  // Helper function to format dates safely
-  const formatDateSafely = (dateString) => {
-    if (!dateString) {
-      // Return current time if no date string provided
-      const now = new Date();
-      return now.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+  // Helper function to safely extract ID from MongoDB ObjectId
+  const extractId = (idObj) => {
+    if (!idObj) return null;
+    
+    // If it's already a string, return it
+    if (typeof idObj === 'string') return idObj;
+    
+    // If it has a $oid property (MongoDB extended JSON format)
+    if (idObj.$oid) return idObj.$oid;
+    
+    // If it's an ObjectId-like object with toString method
+    if (idObj.toString && typeof idObj.toString === 'function') {
+      return idObj.toString();
     }
     
-    // If it's already a formatted string from the backend, use it directly
-    if (typeof dateString === 'string' && (dateString.includes('at') || dateString.includes('AM') || dateString.includes('PM'))) {
-      return dateString;
+    // Last resort: try JSON stringify/parse
+    try {
+      const str = JSON.stringify(idObj);
+      const parsed = JSON.parse(str);
+      if (parsed.$oid) return parsed.$oid;
+    } catch (e) {
+      console.error('Error extracting ID:', e);
     }
+    
+    return String(idObj);
+  };
+
+  // Helper function to format appointment date nicely
+  const formatAppointmentDate = (dateString) => {
+    if (!dateString) return 'Invalid date';
     
     try {
-      const date = new Date(dateString);
+      const date = new Date(dateString + 'T00:00:00'); // Add time to avoid timezone issues
       if (isNaN(date.getTime())) {
-        // Return current time if date is invalid
-        const now = new Date();
-        return now.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
+        return 'Invalid date';
       }
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        weekday: 'long'
       });
     } catch (error) {
-      // Return current time if there's an error
-      const now = new Date();
-      return now.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      console.error('Error formatting appointment date:', error);
+      return dateString; // Return original string if formatting fails
     }
   };
 
@@ -89,8 +85,16 @@ const Dashboard = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Appointments loaded:', data.appointments);
-        setScheduledAppointments(data.appointments || []);
+        console.log('Raw appointments data:', data.appointments);
+        
+        // Ensure all appointment IDs are properly extracted as strings
+        const appointmentsWithStringIds = data.appointments.map(apt => ({
+          ...apt,
+          _id: extractId(apt._id) // Use our safe extraction function
+        }));
+        
+        console.log('Processed appointments:', appointmentsWithStringIds);
+        setScheduledAppointments(appointmentsWithStringIds);
       } else {
         console.error('Error loading appointments:', response.status);
       }
@@ -172,6 +176,97 @@ const Dashboard = () => {
       time: '',
       concern: ''
     });
+  };
+
+  // Function to mark appointment as attended
+  const markAppointmentAttended = async (appointmentId, attended = true) => {
+    try {
+      console.log('Raw appointment ID:', appointmentId);
+      console.log('Type of appointment ID:', typeof appointmentId);
+      
+      // Use our safe extraction function
+      const stringAppointmentId = extractId(appointmentId);
+      console.log('Extracted appointment ID:', stringAppointmentId);
+      
+      const response = await fetch(`https://tupt-counselingbackend.onrender.com/appointments/${stringAppointmentId}/attended`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ attended: attended })
+      });
+
+      const result = await response.json();
+      
+      console.log('Response status:', response.status);
+      console.log('Response data:', result);
+      
+      if (response.ok) {
+        alert(result.message);
+        // Refresh the appointments list
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        loadUserAppointments(user.user_id);
+      } else {
+        alert(`Error: ${result.error || result.message}`);
+        console.error('Backend error:', result);
+      }
+    } catch (error) {
+      console.error('Error marking appointment:', error);
+      alert('Failed to update attendance status');
+    }
+  };
+
+  // Check if appointment can be marked as attended - NOW ALLOWS ANY STATUS FOR TODAY'S APPOINTMENTS
+  const canMarkAttendance = (appointment) => {
+    try {
+      const today = new Date();
+      const todayDateStr = today.toISOString().split('T')[0];
+      const appointmentDateStr = appointment.date;
+      
+      // Show button if appointment date is today, regardless of approval status
+      const isToday = appointmentDateStr === todayDateStr;
+      
+      console.log(`Can mark attendance: ${appointmentDateStr} === ${todayDateStr} = ${isToday}`);
+      
+      return isToday;
+    } catch (error) {
+      console.error('Error in canMarkAttendance:', error);
+      return false;
+    }
+  };
+
+  // Check if appointment is today
+  const isAppointmentToday = (appointment) => {
+    try {
+      const today = new Date();
+      const todayDateStr = today.toISOString().split('T')[0];
+      const appointmentDateStr = appointment.date;
+      
+      const isToday = appointmentDateStr === todayDateStr;
+      console.log(`Is today check: ${appointmentDateStr} === ${todayDateStr} = ${isToday}`);
+      
+      return isToday;
+    } catch (error) {
+      console.error('Error in isAppointmentToday:', error);
+      return false;
+    }
+  };
+
+  // Check if appointment is in the future
+  const isAppointmentFuture = (appointment) => {
+    try {
+      const today = new Date();
+      const todayDateStr = today.toISOString().split('T')[0];
+      const appointmentDateStr = appointment.date;
+      
+      const isFuture = appointmentDateStr > todayDateStr;
+      console.log(`Is future check: ${appointmentDateStr} > ${todayDateStr} = ${isFuture}`);
+      
+      return isFuture;
+    } catch (error) {
+      console.error('Error in isAppointmentFuture:', error);
+      return false;
+    }
   };
 
   // Calendar functions
@@ -389,23 +484,93 @@ const Dashboard = () => {
                 
                 {scheduledAppointments.length > 0 ? (
                   <div className="appointments-list">
-                    {scheduledAppointments.map(appointment => (
-                      <div key={appointment._id} className="appointment-item">
-                        <div className="appointment-header">
-                          <span className="appointment-date">{appointment.date}</span>
-                          <span className="appointment-time">{appointment.preferred_time}</span>
+                    {scheduledAppointments.map(appointment => {
+                      const canMark = canMarkAttendance(appointment);
+                      const isToday = isAppointmentToday(appointment);
+                      const isFuture = isAppointmentFuture(appointment);
+                      const isPast = !isToday && !isFuture;
+                      
+                      return (
+                        <div key={appointment._id} className="appointment-item">
+                          <div className="appointment-header">
+                            <span className="appointment-date">
+                              {formatAppointmentDate(appointment.date)}
+                            </span>
+                            <span className="appointment-time">{appointment.preferred_time}</span>
+                            {isToday && <span className="appointment-badge today">Today</span>}
+                            {isFuture && <span className="appointment-badge future">Upcoming</span>}
+                            {isPast && <span className="appointment-badge past">Past</span>}
+                          </div>
+                          <div className="appointment-details">
+                            <span className="appointment-concern">{appointment.concern_type}</span>
+                            <span className={`appointment-status ${appointment.status.toLowerCase()}`}>
+                              {appointment.status}
+                            </span>
+                          </div>
+                          <div className="appointment-meta">
+                            {appointment.attended !== undefined && (
+                              <small className={`attendance-status ${appointment.attended ? 'attended' : 'not-attended'}`}>
+                                {appointment.attended ? '✓ Attended' : '✗ Not Attended'}
+                              </small>
+                            )}
+                          </div>
+                          
+                          {/* Attendance Controls */}
+                          {canMark && !appointment.attended && (
+                            <div className="attendance-controls">
+                              <button 
+                                onClick={() => markAppointmentAttended(appointment._id, true)}
+                                className="btn-mark-attended"
+                              >
+                                Mark as Attended
+                              </button>
+                            </div>
+                          )}
+                          
+                          {canMark && appointment.attended && (
+                            <div className="attendance-controls">
+                              <button 
+                                onClick={() => markAppointmentAttended(appointment._id, false)}
+                                className="btn-mark-not-attended"
+                              >
+                                Mark as Not Attended
+                              </button>
+                            </div>
+                          )}
+                          
+                          {/* Status Messages */}
+                          {isFuture && appointment.status === 'Pending' && (
+                            <div className="attendance-note">
+                              <small>⏳ Waiting for approval</small>
+                            </div>
+                          )}
+                          
+                          {isFuture && (appointment.status === 'Approved' || appointment.status === 'Completed') && (
+                            <div className="attendance-note">
+                              <small>📅 Approved - Appointment is in the future</small>
+                            </div>
+                          )}
+                          
+                          {isToday && appointment.status === 'Pending' && (
+                            <div className="attendance-note">
+                              <small>⏳ Waiting for approval</small>
+                            </div>
+                          )}
+                          
+                          {isPast && appointment.status === 'Pending' && (
+                            <div className="attendance-note">
+                              <small>⏳ Waiting for approval - Appointment date has passed</small>
+                            </div>
+                          )}
+                          
+                          {isPast && (appointment.status === 'Approved' || appointment.status === 'Completed') && !canMark && (
+                            <div className="attendance-note">
+                              <small>✅ Past appointment - Attendance can be marked</small>
+                            </div>
+                          )}
                         </div>
-                        <div className="appointment-details">
-                          <span className="appointment-concern">{appointment.concern_type}</span>
-                          <span className={`appointment-status ${appointment.status.toLowerCase()}`}>
-                            {appointment.status}
-                          </span>
-                        </div>
-                        <div className="appointment-meta">
-                          <small>Scheduled on: {appointment.formatted_created_at || formatDateSafely(appointment.created_at)}</small>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="no-appointments">
